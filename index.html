@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI-Mediated Soundscapes — Knowledge Work</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f0e;
+    --bg2: #131614;
+    --bg3: #1a1d1b;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #e8ebe7;
+    --text2: #8a9088;
+    --text3: #5a5f58;
+
+    --focus:    #4a9eff;
+    --focus-bg: rgba(74,158,255,0.08);
+    --focus-dim: rgba(74,158,255,0.18);
+
+    --trans:    #f0a050;
+    --trans-bg: rgba(240,160,80,0.08);
+    --trans-dim: rgba(240,160,80,0.18);
+
+    --rec:    #3ec99a;
+    --rec-bg: rgba(62,201,154,0.08);
+    --rec-dim: rgba(62,201,154,0.18);
+
+    --sleep:    #a78bfa;
+    --sleep-bg: rgba(167,139,250,0.08);
+    --sleep-dim: rgba(167,139,250,0.18);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Instrument Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── GRID NOISE TEXTURE ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── HEADER ── */
+  header {
+    position: relative; z-index: 10;
+    padding: 48px 60px 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+  }
+
+  .header-left { max-width: 560px; }
+
+  .eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.12em;
+    color: var(--text3);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 36px;
+    font-weight: 400;
+    line-height: 1.2;
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--text2);
+  }
+
+  .subtitle {
+    font-size: 14px;
+    color: var(--text2);
+    line-height: 1.7;
+    max-width: 480px;
+  }
+
+  .header-right {
+    padding-top: 8px;
+    text-align: right;
+  }
+
+  .live-clock {
+    font-family: 'DM Mono', monospace;
+    font-size: 28px;
+    font-weight: 300;
+    color: var(--text);
+    letter-spacing: 0.04em;
+    margin-bottom: 4px;
+  }
+
+  .live-date {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text3);
+    letter-spacing: 0.06em;
+  }
+
+  /* ── TIMELINE ── */
+  .timeline-section {
+    position: relative; z-index: 10;
+    padding: 40px 60px 0;
+  }
+
+  .timeline-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .timeline-track {
+    position: relative;
+    height: 6px;
+    background: var(--bg3);
+    border-radius: 3px;
+    overflow: visible;
+    margin-bottom: 8px;
+  }
+
+  .timeline-fill {
+    position: absolute;
+    left: 0; top: 0; height: 100%;
+    border-radius: 3px;
+    transition: width 1s linear, background 1s;
+  }
+
+  .timeline-stages {
+    display: flex;
+    gap: 0;
+    margin-top: 6px;
+  }
+
+  .tl-stage {
+    flex: 1;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: 0.06em;
+    padding-top: 2px;
+  }
+
+  /* ── STAGE TABS ── */
+  .tabs-section {
+    position: relative; z-index: 10;
+    padding: 32px 60px 0;
+    display: flex;
+    gap: 8px;
+  }
+
+  .tab {
+    flex: 1;
+    padding: 14px 16px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .tab::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .tab:hover { border-color: var(--border2); }
+
+  .tab.focus-tab   { --c: var(--focus);  --cbg: var(--focus-bg); }
+  .tab.trans-tab   { --c: var(--trans);  --cbg: var(--trans-bg); }
+  .tab.rec-tab     { --c: var(--rec);    --cbg: var(--rec-bg); }
+  .tab.sleep-tab   { --c: var(--sleep);  --cbg: var(--sleep-bg); }
+
+  .tab.active {
+    background: var(--cbg);
+    border-color: var(--c);
+  }
+
+  .tab-indicator {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--c);
+    margin-bottom: 8px;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+  }
+  .tab.active .tab-indicator { opacity: 1; }
+
+  .tab-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+
+  .tab-proto {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: 0.04em;
+  }
+  .tab.active .tab-proto { color: var(--c); opacity: 0.8; }
+
+  /* ── MAIN PANEL ── */
+  .main-section {
+    position: relative; z-index: 10;
+    padding: 24px 60px 60px;
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 20px;
+    align-items: start;
+  }
+
+  .panel { display: none; }
+  .panel.active { display: contents; }
+
+  /* ── SOUND CARD ── */
+  .sound-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .sound-card-header {
+    padding: 28px 28px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sound-card-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 24px;
+    font-weight: 400;
+    margin-bottom: 6px;
+  }
+
+  .sound-card-desc {
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.6;
+  }
+
+  /* ── VIZ ── */
+  .viz-area {
+    padding: 24px 28px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    height: 120px;
+    overflow: hidden;
+  }
+
+  .waveform {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    height: 100%;
+    position: relative;
+  }
+
+  .wave-bar {
+    flex: 1;
+    border-radius: 2px;
+    min-height: 3px;
+    transition: height 0.15s ease;
+  }
+
+  /* ── CONTROLS ── */
+  .controls-area {
+    padding: 24px 28px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .control-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .control-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .control-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text2);
+    letter-spacing: 0.03em;
+  }
+
+  .control-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--c, var(--text2));
+  }
+
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 3px;
+    background: var(--bg3);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--c, #fff);
+    border: 2px solid var(--bg2);
+    box-shadow: 0 0 0 1px var(--c, #fff);
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+
+  input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+  /* ── TRANSPORT ── */
+  .transport-area {
+    padding: 20px 28px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .play-btn {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: var(--c, #fff);
+    border: none;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.15s, box-shadow 0.15s;
+    flex-shrink: 0;
+  }
+
+  .play-btn:hover { transform: scale(1.06); box-shadow: 0 0 20px var(--c-dim, transparent); }
+  .play-btn svg { width: 18px; height: 18px; fill: var(--bg); }
+
+  .stop-btn {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: transparent;
+    border: 1px solid var(--border2);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .stop-btn:hover { background: var(--bg3); border-color: var(--text3); }
+  .stop-btn svg { width: 12px; height: 12px; fill: var(--text2); }
+
+  .transport-info { flex: 1; }
+  .transport-status {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text3);
+    letter-spacing: 0.05em;
+  }
+
+  .override-btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    padding: 6px 12px;
+    background: transparent;
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    color: var(--text3);
+    cursor: pointer;
+    letter-spacing: 0.06em;
+    transition: all 0.15s;
+  }
+  .override-btn:hover { border-color: #e05555; color: #e05555; }
+
+  /* ── SIDEBAR ── */
+  .sidebar { display: flex; flex-direction: column; gap: 16px; }
+
+  .info-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .info-card-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .scenario-text {
+    padding: 16px 20px;
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.75;
+  }
+
+  .rules-list {
+    padding: 12px 20px 16px;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .rule-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.5;
+  }
+
+  .rule-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--c, var(--text3));
+    flex-shrink: 0;
+    margin-top: 5px;
+  }
+
+  .principle-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+  }
+
+  .principle-item {
+    background: var(--bg2);
+    padding: 14px 16px;
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.4;
+  }
+
+  .principle-item strong {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 3px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.04em;
+  }
+
+  /* ── BREATH RING ── */
+  .breath-container {
+    padding: 24px 28px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .breath-ring {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    border: 1.5px solid var(--sleep);
+    display: flex; align-items: center; justify-content: center;
+    animation: breathe 4s ease-in-out infinite;
+  }
+
+  @keyframes breathe {
+    0%,100% { transform: scale(1); opacity: 0.6; box-shadow: 0 0 0 0 rgba(167,139,250,0.2); }
+    50% { transform: scale(1.15); opacity: 1; box-shadow: 0 0 0 12px rgba(167,139,250,0); }
+  }
+
+  .breath-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--sleep);
+    letter-spacing: 0.1em;
+    opacity: 0.7;
+    text-align: center;
+  }
+
+  /* ── NOTIFICATION BUNDLE ── */
+  .notif-list {
+    padding: 12px 28px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .notif-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: var(--bg3);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text2);
+  }
+
+  .notif-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+  }
+
+  /* ── TOGGLE ROWS ── */
+  .toggle-list {
+    padding: 8px 28px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--text2);
+  }
+  .toggle-row:last-child { border-bottom: none; }
+
+  .toggle {
+    width: 34px; height: 19px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    position: relative;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .toggle::after {
+    content: '';
+    position: absolute;
+    width: 13px; height: 13px;
+    border-radius: 50%;
+    background: #fff;
+    top: 3px;
+    transition: left 0.2s;
+  }
+  .toggle.on  { background: var(--c, #3ec99a); }
+  .toggle.on::after  { left: 18px; }
+  .toggle.off { background: rgba(255,255,255,0.12); }
+  .toggle.off::after { left: 3px; }
+
+  /* ── PROFILE PILLS ── */
+  .profile-list {
+    padding: 12px 28px 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .profile-pill {
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--border2);
+    font-size: 12px;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.15s;
+    background: transparent;
+  }
+  .profile-pill:hover { border-color: var(--c); color: var(--text); }
+  .profile-pill.active {
+    background: var(--cbg, var(--sleep-bg));
+    border-color: var(--c, var(--sleep));
+    color: var(--c, var(--sleep));
+  }
+
+  /* ── STATUS BAR ── */
+  .status-bar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 40px;
+    background: rgba(13,15,14,0.9);
+    backdrop-filter: blur(12px);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 60px;
+    gap: 24px;
+    z-index: 100;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text3);
+    letter-spacing: 0.05em;
+  }
+
+  .status-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%,100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .status-item { display: flex; align-items: center; gap: 6px; }
+
+  /* ── PLAYING STATE ── */
+  .wave-bar.playing {
+    animation: waveanim 0.6s ease-in-out infinite alternate;
+  }
+
+  @keyframes waveanim {
+    from { height: var(--base-h); }
+    to { height: var(--peak-h); }
+  }
+
+  /* ── SECTION LABEL ── */
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 16px 28px 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-left">
+    <div class="eyebrow">CHI 2025 · Design Concept Prototype</div>
+    <h1>AI-Mediated Soundscapes<br>for <em>Focus &amp; Recovery</em></h1>
+    <p class="subtitle">A continuous auditory interface across the knowledge worker's day — from deep focus to pre-sleep preparation.</p>
+  </div>
+  <div class="header-right">
+    <div class="live-clock" id="clock">--:--:--</div>
+    <div class="live-date" id="date">---</div>
+  </div>
+</header>
+
+<!-- TIMELINE -->
+<div class="timeline-section">
+  <div class="timeline-label">Daily arc</div>
+  <div class="timeline-track">
+    <div class="timeline-fill" id="timeline-fill"></div>
+  </div>
+  <div class="timeline-stages">
+    <span class="tl-stage" style="color:var(--focus)">Focus</span>
+    <span class="tl-stage" style="color:var(--trans)">Transition</span>
+    <span class="tl-stage" style="color:var(--rec)">Recovery</span>
+    <span class="tl-stage" style="color:var(--sleep)">Pre-sleep</span>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs-section">
+  <button class="tab focus-tab active" onclick="switchStage('focus', this)">
+    <div class="tab-indicator"></div>
+    <div class="tab-name">Focus</div>
+    <div class="tab-proto">FocusWeave</div>
+  </button>
+  <button class="tab trans-tab" onclick="switchStage('transition', this)">
+    <div class="tab-indicator"></div>
+    <div class="tab-name">Transition</div>
+    <div class="tab-proto">ShiftTone</div>
+  </button>
+  <button class="tab rec-tab" onclick="switchStage('recovery', this)">
+    <div class="tab-indicator"></div>
+    <div class="tab-name">Recovery</div>
+    <div class="tab-proto">DriftLine</div>
+  </button>
+  <button class="tab sleep-tab" onclick="switchStage('sleep', this)">
+    <div class="tab-indicator"></div>
+    <div class="tab-name">Pre-sleep</div>
+    <div class="tab-proto">DriftLine</div>
+  </button>
+</div>
+
+<!-- MAIN -->
+<div class="main-section">
+
+  <!-- ══════════════════════════════════
+       FOCUS PANEL
+  ══════════════════════════════════ -->
+  <div class="panel active" id="panel-focus">
+    <!-- Sound Card -->
+    <div class="sound-card" style="--c:var(--focus);--cbg:var(--focus-bg);--c-dim:var(--focus-dim)">
+      <div class="sound-card-header">
+        <div class="sound-card-title" style="color:var(--focus)">FocusWeave</div>
+        <div class="sound-card-desc">Adaptive noise masking layer. Organises disruption rather than eliminating it — keeping you safe-but-uninterrupted.</div>
+      </div>
+
+      <div class="viz-area">
+        <div class="waveform" id="wave-focus"></div>
+      </div>
+
+      <div class="controls-area" style="--c:var(--focus)">
+        <div class="control-row">
+          <div class="control-header">
+            <span class="control-label">Masking intensity</span>
+            <span class="control-value" id="mask-val">65%</span>
+          </div>
+          <input type="range" min="0" max="100" value="65" step="1"
+            oninput="document.getElementById('mask-val').textContent=this.value+'%'; updateWave('focus', this.value)">
+        </div>
+        <div class="control-row">
+          <div class="control-header">
+            <span class="control-label">Variability</span>
+            <span class="control-value" id="var-val">Low</span>
+          </div>
+          <input type="range" min="1" max="3" value="1" step="1"
+            oninput="document.getElementById('var-val').textContent=['Low','Medium','High'][this.value-1]">
+        </div>
+        <div class="control-row">
+          <div class="control-header">
+            <span class="control-label">Focus block duration</span>
+            <span class="control-value" id="dur-val">90 min</span>
+          </div>
+          <input type="range" min="25" max="180" value="90" step="5"
+            oninput="document.getElementById('dur-val').textContent=this.value+' min'">
+        </div>
+      </div>
+
+      <div class="transport-area" style="--c:var(--focus);--c-dim:var(--focus-dim)">
+        <button class="play-btn" id="play-focus" onclick="togglePlay('focus')">
+          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+        <button class="stop-btn" onclick="stopAll()">
+          <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
+        </button>
+        <div class="transport-info">
+          <div class="transport-status" id="status-focus">READY</div>
+        </div>
+        <button class="override-btn" onclick="stopAll()">OVERRIDE ×</button>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="info-card" style="--c:var(--focus)">
+        <div class="info-card-title">Scenario</div>
+        <div class="scenario-text">Minji activates FocusWeave at the start of her morning deep-work block. Delivery alerts, corridor conversations, and keyboard noise are not eliminated — they are pushed into the perceptual background. "Not blocked, but less intrusive."</div>
+      </div>
+      <div class="info-card" style="--c:var(--focus)">
+        <div class="info-card-title">User-defined rules</div>
+        <ul class="rules-list">
+          <li class="rule-item"><span class="rule-dot"></span>Calendar focus blocks: 09:00–12:00</li>
+          <li class="rule-item"><span class="rule-dot"></span>High-salience sounds → perceptual background</li>
+          <li class="rule-item"><span class="rule-dot" style="background:var(--text3)"></span>Emergency calls: never masked</li>
+          <li class="rule-item"><span class="rule-dot" style="background:var(--text3)"></span>Raw audio never stored</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       TRANSITION PANEL
+  ══════════════════════════════════ -->
+  <div class="panel" id="panel-transition">
+    <div class="sound-card" style="--c:var(--trans);--cbg:var(--trans-bg);--c-dim:var(--trans-dim)">
+      <div class="sound-card-header">
+        <div class="sound-card-title" style="color:var(--trans)">ShiftTone</div>
+        <div class="sound-card-desc">Auditory handoff tool. Gradually reduces sound density and brightness, then bundles tasks into three voice prompts to structure leaving work.</div>
+      </div>
+
+      <div class="section-label">Remaining tasks (max 3)</div>
+      <div class="notif-list">
+        <div class="notif-item">
+          <span>Finish report draft</span>
+          <span class="notif-tag" style="background:rgba(240,160,80,0.12);color:var(--trans)">do now</span>
+        </div>
+        <div class="notif-item">
+          <span>Prepare team meeting agenda</span>
+          <span class="notif-tag" style="background:rgba(240,160,80,0.12);color:var(--trans)">tomorrow</span>
+        </div>
+        <div class="notif-item">
+          <span>Clean up old version files</span>
+          <span class="notif-tag" style="background:rgba(255,255,255,0.06);color:var(--text3)">discard</span>
+        </div>
+      </div>
+
+      <div class="section-label">Notification bundling</div>
+      <div class="toggle-list" style="--c:var(--trans)">
+        <div class="toggle-row">
+          <span>Bundle messenger alerts</span>
+          <button class="toggle on" onclick="this.classList.toggle('on');this.classList.toggle('off')"></button>
+        </div>
+        <div class="toggle-row">
+          <span>Bundle email notifications</span>
+          <button class="toggle on" onclick="this.classList.toggle('on');this.classList.toggle('off')"></button>
+        </div>
+        <div class="toggle-row">
+          <span>Save first task to notes app</span>
+          <button class="toggle on" onclick="this.classList.toggle('on');this.classList.toggle('off')"></button>
+        </div>
+      </div>
+
+      <div class="controls-area" style="--c:var(--trans)">
+        <div class="control-row">
+          <div class="control-header">
+            <span class="control-label">Warning lead time</span>
+            <span class="control-value" id="warn-val">15 min</span>
+          </div>
+          <input type="range" min="5" max="30" value="15" step="5"
+            oninput="document.getElementById('warn-val').textContent=this.value+' min'">
+        </div>
+        <div class="control-row">
+          <div class="control-header">
+            <span class="control-label">Brightness fade</span>
+            <span class="control-value" id="fade-val">40%</span>
+          </div>
+          <input type="range" min="10" max="80" value="40" step="10"
+            oninput="document.getElementById('fade-val').textContent=this.value+'%'">
+        </div>
+      </div>
+
+      <div class="transport-area" style="--c:var(--trans);--c-dim:var(--trans-dim)">
+        <button class="play-btn" id="play-transition" onclick="togglePlay('transition')">
+          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+        <button class="stop-btn" onclick="stopAll()">
+          <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
+        </button>
+        <div class="transport-info">
+          <div class="transport-status" id="status-transition">READY</div>
+        </div>
+        <button class="override-btn" onclick="stopAll()">OVERRIDE ×</button>
+      </div>
+    </div>
+
+    <div class="sidebar">
+      <div class="info-card" style="--c:var(--trans)">
+        <div class="info-card-title">Scenario</div>
+        <div class="scenario-text">Even after meetings end, Doyoon keeps work open into the evening, unable to disengage. ShiftTone gradually slows the background sound and reads three brief prompts. After confirming, notifications are bundled and only the first morning task remains.</div>
+      </div>
+      <div class="info-card" style="--c:var(--trans)">
+        <div class="info-card-title">Design intent</div>
+        <ul class="rules-list">
+          <li class="rule-item"><span class="rule-dot"></span>Leaving work is a structured closing procedure</li>
+          <li class="rule-item"><span class="rule-dot"></span>Not a productivity interruption — a quality handoff</li>
+          <li class="rule-item"><span class="rule-dot" style="background:var(--text3)"></span>User approves every bundling action</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       RECOVERY PANEL
+  ══════════════════════════════════ -->
+  <div class="panel" id="panel-recovery">
+    <div class="sound-card" style="--c:var(--rec);--cbg:var(--rec-bg);--c-dim:var(--rec-dim)">
+      <div class="sound-card-header">
+        <div class="sound-card-title" style="color:var(--rec)">DriftLine — Recovery</div>
+        <div class="sound-card-desc">Reduces residual arousal from work. Prioritises distancing over isolation — low event density, gentle spatial continuity, fully stoppable at any time.</div>
+      </div>
+
+      <div class="viz-area">
+        <div class="waveform" id="wave-recovery"></div>
+      </div>
+
+      <div class="section-label">Sound profile</div>
+      <div class="profile-list" style="--c:var(--rec);--cbg:var(--rec-bg)">
+        <button class="profile-pill active" onclick="selectPill(this)">Forest rain</button>
+        <button class="profile-pill" onclick="selectPill(this)">Café ambience</button>
+        <button class="profile-pill" onclick="selectPill(this)">Ocean waves</button>
+        <button class="profile-pill" onclick="selectPill(this)">Sub-bass only</button>
+      </div>
+
+      <div class="controls-area" style="--c:var(--rec)">
+        <div class="control-row">
+          <div class="control-header">
+            <span class="control-label">Event density</span>
+            <span class="control-value" id="density-val">Low</span>
+          </div>
+          <input type="range" min="1" max="3" value="1" step="1"
+            oninput="document.getElementById('density-val').textContent=['Low','Medium','High'][this.value-1]; updateWave('recovery', (4-this.value)*28)">
+        </div>
+        <div class="control-row">
+          <div class="control-header">
+            <span class="control-label">Spatial depth</span>
+            <span class="control-value" id="space-val">Soft</span>
+          </div>
+          <input type="range" min="1" max="3" value="2" step="1"
+            oninput="document.getElementById('space-val').textContent=['Narrow','Soft','Wide'][this.value-1]">
+        </div>
+      </div>
+
+      <div class="transport-area" style="--c:var(--rec);--c-dim:var(--rec-dim)">
+        <button class="play-btn" id="play-recovery" onclick="togglePlay('recovery')">
+          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+        <button class="stop-btn" onclick="stopAll()">
+          <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
+        </button>
+        <div class="transport-info">
+          <div class="transport-status" id="status-recovery">READY</div>
+        </div>
+        <button class="override-btn" onclick="stopAll()">OVERRIDE ×</button>
+      </div>
+    </div>
+
+    <div class="sidebar">
+      <div class="info-card" style="--c:var(--rec)">
+        <div class="info-card-title">Scenario</div>
+        <div class="scenario-text">After logging off, Sua settles into a low-density ambient sound environment. The system does not evaluate her state — it simply reduces signal intensity and creates gentle perceptual distance from work.</div>
+      </div>
+      <div class="info-card" style="--c:var(--rec)">
+        <div class="info-card-title">Design intent</div>
+        <ul class="rules-list">
+          <li class="rule-item"><span class="rule-dot"></span>Distancing over complete isolation</li>
+          <li class="rule-item"><span class="rule-dot"></span>Environmental safety preserved</li>
+          <li class="rule-item"><span class="rule-dot" style="background:var(--text3)"></span>No inference of personal state</li>
+          <li class="rule-item"><span class="rule-dot" style="background:var(--text3)"></span>Always stoppable — one tap</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       PRE-SLEEP PANEL
+  ══════════════════════════════════ -->
+  <div class="panel" id="panel-sleep">
+    <div class="sound-card" style="--c:var(--sleep);--cbg:var(--sleep-bg);--c-dim:rgba(167,139,250,0.25)">
+      <div class="sound-card-header">
+        <div class="sound-card-title" style="color:var(--sleep)">DriftLine — Pre-sleep</div>
+        <div class="sound-card-desc">Screen-free handoff from recovery to sleep preparation. Transfers sound from desk device to personal bedroom device. System never infers sleep state.</div>
+      </div>
+
+      <div class="breath-container">
+        <div class="breath-ring"></div>
+        <div class="breath-label">BREATH SYNC · 4s CYCLE</div>
+      </div>
+
+      <div class="section-label">Pre-sleep profile</div>
+      <div class="profile-list" style="--c:var(--sleep);--cbg:var(--sleep-bg)">
+        <button class="profile-pill active" onclick="selectPill(this)">Han River nights</button>
+        <button class="profile-pill" onclick="selectPill(this)">Jeju shoreline</button>
+        <button class="profile-pill" onclick="selectPill(this)">Forest dawn II</button>
+        <button class="profile-pill" onclick="selectPill(this)">White noise</button>
+      </div>
+
+      <div class="section-label">Device handoff</div>
+      <div class="toggle-list" style="--c:var(--sleep)">
+        <div class="toggle-row">
+          <span>Desk → bedroom device transfer</span>
+          <button class="toggle on" onclick="this.classList.toggle('on');this.classList.toggle('off')"></button>
+        </div>
+        <div class="toggle-row">
+          <span>Screen auto-dim</span>
+          <button class="toggle on" onclick="this.classList.toggle('on');this.classList.toggle('off')"></button>
+        </div>
+        <div class="toggle-row">
+          <span>Separate from org account</span>
+          <button class="toggle on" onclick="this.classList.toggle('on');this.classList.toggle('off')"></button>
+        </div>
+      </div>
+
+      <div class="controls-area" style="--c:var(--sleep)">
+        <div class="control-row">
+          <div class="control-header">
+            <span class="control-label">Wind-down speed</span>
+            <span class="control-value" id="wind-val">Slow</span>
+          </div>
+          <input type="range" min="1" max="3" value="1" step="1"
+            oninput="document.getElementById('wind-val').textContent=['Slow','Normal','Fast'][this.value-1]">
+        </div>
+      </div>
+
+      <div class="transport-area" style="--c:var(--sleep);--c-dim:rgba(167,139,250,0.25)">
+        <button class="play-btn" id="play-sleep" onclick="togglePlay('sleep')">
+          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+        <button class="stop-btn" id="end-session-btn" onclick="endSession()">
+          <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
+        </button>
+        <div class="transport-info">
+          <div class="transport-status" id="status-sleep">READY</div>
+        </div>
+        <button class="override-btn" onclick="endSession()" id="end-btn">END SESSION</button>
+      </div>
+    </div>
+
+    <div class="sidebar">
+      <div class="info-card" style="--c:var(--sleep)">
+        <div class="info-card-title">Scenario</div>
+        <div class="scenario-text">After 10pm, DriftLine transfers sound from the desk to a small bedroom device while the screen dims automatically. Sua listens to a short breath-synchronised sequence, then ends with a single press. The system quietly withdraws.</div>
+      </div>
+      <div class="info-card" style="--c:var(--sleep)">
+        <div class="info-card-title">Privacy principles</div>
+        <div class="principle-grid">
+          <div class="principle-item"><strong>No raw audio</strong>Never stored or transmitted</div>
+          <div class="principle-item"><strong>On-device</strong>All processing local</div>
+          <div class="principle-item"><strong>Separated</strong>Org accounts isolated</div>
+          <div class="principle-item"><strong>Override</strong>Instant, always available</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- STATUS BAR -->
+<div class="status-bar">
+  <div class="status-item">
+    <div class="status-dot" id="status-dot" style="background:var(--text3)"></div>
+    <span id="status-text">No stage active</span>
+  </div>
+  <div class="status-item">
+    <span>Raw audio: never stored</span>
+  </div>
+  <div class="status-item">
+    <span>On-device processing</span>
+  </div>
+  <div style="flex:1"></div>
+  <div class="status-item">
+    <span>Eun Ji Park · Seoul National University</span>
+  </div>
+</div>
+
+<script>
+  // ── CLOCK ──
+  function updateClock() {
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2,'0');
+    const m = String(now.getMinutes()).padStart(2,'0');
+    const s = String(now.getSeconds()).padStart(2,'0');
+    document.getElementById('clock').textContent = `${h}:${m}:${s}`;
+    const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    document.getElementById('date').textContent = `${days[now.getDay()]} · ${months[now.getMonth()]} ${now.getDate()}`;
+    // Timeline fill: 0–24h mapped to 0–100%
+    const pct = Math.round(((now.getHours()*3600 + now.getMinutes()*60 + now.getSeconds()) / 86400) * 100);
+    const fill = document.getElementById('timeline-fill');
+    const stage = now.getHours() < 12 ? 'focus' : now.getHours() < 17 ? 'transition' : now.getHours() < 21 ? 'recovery' : 'sleep';
+    const colors = { focus: 'var(--focus)', transition: 'var(--trans)', recovery: 'var(--rec)', sleep: 'var(--sleep)' };
+    fill.style.width = pct + '%';
+    fill.style.background = colors[stage];
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  // ── WAVE BARS ──
+  function buildWave(id, color, value) {
+    const container = document.getElementById('wave-' + id);
+    if (!container) return;
+    container.innerHTML = '';
+    const count = 48;
+    for (let i = 0; i < count; i++) {
+      const bar = document.createElement('div');
+      bar.className = 'wave-bar';
+      const base = Math.max(4, Math.round((value / 100) * 60 * (0.3 + Math.random() * 0.7)));
+      bar.style.height = base + 'px';
+      bar.style.background = color;
+      bar.style.opacity = (0.4 + Math.random() * 0.5).toFixed(2);
+      bar.dataset.base = base;
+      container.appendChild(bar);
+    }
+  }
+
+  function updateWave(id, value) {
+    const container = document.getElementById('wave-' + id);
+    if (!container) return;
+    container.querySelectorAll('.wave-bar').forEach(bar => {
+      const newH = Math.max(4, Math.round((value / 100) * 60 * (0.3 + Math.random() * 0.7)));
+      bar.style.height = newH + 'px';
+      bar.dataset.base = newH;
+    });
+  }
+
+  buildWave('focus', 'var(--focus)', 65);
+  buildWave('recovery', 'var(--rec)', 28);
+
+  // ── WAVE ANIMATION ──
+  let waveIntervals = {};
+
+  function animateWave(id) {
+    if (waveIntervals[id]) return;
+    const container = document.getElementById('wave-' + id);
+    if (!container) return;
+    waveIntervals[id] = setInterval(() => {
+      container.querySelectorAll('.wave-bar').forEach(bar => {
+        const base = parseInt(bar.dataset.base) || 10;
+        const jitter = Math.round(base * (0.6 + Math.random() * 0.8));
+        bar.style.height = Math.max(3, jitter) + 'px';
+      });
+    }, 120);
+  }
+
+  function stopWaveAnim(id) {
+    if (waveIntervals[id]) {
+      clearInterval(waveIntervals[id]);
+      delete waveIntervals[id];
+    }
+    const container = document.getElementById('wave-' + id);
+    if (!container) return;
+    container.querySelectorAll('.wave-bar').forEach(bar => {
+      bar.style.height = (bar.dataset.base || 8) + 'px';
+    });
+  }
+
+  // ── AUDIO (Web Audio API) ──
+  let audioCtx = null;
+  let activeNodes = {};
+  let playing = {};
+
+  function getAudioCtx() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    return audioCtx;
+  }
+
+  function createNoise(type) {
+    const ctx = getAudioCtx();
+    const bufferSize = ctx.sampleRate * 3;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.loop = true;
+    return source;
+  }
+
+  function playStage(id) {
+    const ctx = getAudioCtx();
+    if (ctx.state === 'suspended') ctx.resume();
+    stopStageAudio(id);
+
+    const configs = {
+      focus:      { freq: 200,  q: 0.8,  gain: 0.06, filterType: 'bandpass' },
+      transition: { freq: 400,  q: 1.2,  gain: 0.04, filterType: 'lowpass' },
+      recovery:   { freq: 100,  q: 0.5,  gain: 0.04, filterType: 'lowpass' },
+      sleep:      { freq: 60,   q: 0.3,  gain: 0.03, filterType: 'lowpass' },
+    };
+
+    const cfg = configs[id];
+    const noise = createNoise('white');
+    const filter = ctx.createBiquadFilter();
+    filter.type = cfg.filterType;
+    filter.frequency.value = cfg.freq;
+    filter.Q.value = cfg.q;
+
+    const gainNode = ctx.createGain();
+    gainNode.gain.setValueAtTime(0, ctx.currentTime);
+    gainNode.gain.linearRampToValueAtTime(cfg.gain, ctx.currentTime + 1.5);
+
+    noise.connect(filter);
+    filter.connect(gainNode);
+    gainNode.connect(ctx.destination);
+    noise.start();
+
+    activeNodes[id] = { noise, gainNode };
+  }
+
+  function stopStageAudio(id) {
+    if (activeNodes[id]) {
+      const ctx = getAudioCtx();
+      const { noise, gainNode } = activeNodes[id];
+      gainNode.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.8);
+      setTimeout(() => { try { noise.stop(); } catch(e){} }, 900);
+      delete activeNodes[id];
+    }
+  }
+
+  // ── PLAY TOGGLE ──
+  const stageColors = {
+    focus: 'var(--focus)', transition: 'var(--trans)', recovery: 'var(--rec)', sleep: 'var(--sleep)'
+  };
+
+  function togglePlay(id) {
+    if (playing[id]) {
+      stopAll();
+    } else {
+      stopAll();
+      playing[id] = true;
+      playStage(id);
+      animateWave(id);
+
+      const btn = document.getElementById('play-' + id);
+      btn.innerHTML = `<svg viewBox="0 0 24 24" style="fill:var(--bg)"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>`;
+
+      const statusEl = document.getElementById('status-' + id);
+      if (statusEl) statusEl.textContent = 'PLAYING';
+
+      const dot = document.getElementById('status-dot');
+      dot.style.background = stageColors[id];
+      document.getElementById('status-text').textContent = `${id.toUpperCase()} · Active`;
+    }
+  }
+
+  function stopAll() {
+    ['focus','transition','recovery','sleep'].forEach(id => {
+      if (playing[id]) {
+        stopStageAudio(id);
+        stopWaveAnim(id);
+        playing[id] = false;
+        const btn = document.getElementById('play-' + id);
+        if (btn) btn.innerHTML = `<svg viewBox="0 0 24 24" style="fill:var(--bg)"><path d="M8 5v14l11-7z"/></svg>`;
+        const statusEl = document.getElementById('status-' + id);
+        if (statusEl) statusEl.textContent = 'READY';
+      }
+    });
+    document.getElementById('status-dot').style.background = 'var(--text3)';
+    document.getElementById('status-text').textContent = 'No stage active';
+  }
+
+  function endSession() {
+    stopAll();
+    document.getElementById('status-text').textContent = 'Session ended · System withdrawn';
+    document.getElementById('end-btn').textContent = 'ENDED';
+    document.getElementById('end-btn').style.color = 'var(--sleep)';
+    document.getElementById('end-btn').style.borderColor = 'var(--sleep)';
+  }
+
+  // ── STAGE SWITCH ──
+  let currentStage = 'focus';
+
+  function switchStage(id, tabEl) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('panel-' + id).classList.add('active');
+    tabEl.classList.add('active');
+    currentStage = id;
+  }
+
+  // ── PROFILE PILLS ──
+  function selectPill(el) {
+    el.closest('.profile-list').querySelectorAll('.profile-pill').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+  }
+</script>
+</body>
+</html>
